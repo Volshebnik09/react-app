@@ -23,6 +23,13 @@ body {
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  flex-direction: column;
+  gap:10px;
+}
+.desc {
+  color: gray;
+  font-family: "Ubuntu", serif;
+  font-size: 15px;
 }
 .game {
   background: white;

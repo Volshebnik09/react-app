@@ -38,7 +38,7 @@ function GameOS({cellsSize,cellsPerWidth,cellsPerHeight,game,getCurrentPlayer,ch
             OSCoords[1] += e.movementY
             setOSCoords([OSCoords[0],OSCoords[1]])
         })
-    },[])
+    },[game,OSCoords])
 
     function move (x:number,y:number){
         if (fieldLock) return

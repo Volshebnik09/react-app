@@ -1,4 +1,3 @@
-import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import Game from "./components/Game/Game";
@@ -7,8 +6,10 @@ import Game from "./components/Game/Game";
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
-
 root.render(
+    <>
+    {/*eslint-disable-next-line*/}
+    <div className="desc" >// перемещение с помощью ПКМ</div>
       <Game
         toWin={3}
         width={500}
@@ -28,4 +29,6 @@ root.render(
                 symbol: "e"
             }]}
       />
+    </>
+ 
 );
