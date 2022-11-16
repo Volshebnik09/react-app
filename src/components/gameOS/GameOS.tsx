@@ -42,11 +42,12 @@ function GameOS({cellsSize,cellsPerWidth,cellsPerHeight,game,getCurrentPlayer,ch
 
     function move (x:number,y:number){
         if (fieldLock) return
+        if (getSymbol(x,y)) return
         setSymbol(x,y,getCurrentPlayer().symbol)
         changePlayer()
         if (checkWin(x,y,getSymbol)) {
             setFieldLock(true)
-            alert("win")
+            alert(getCurrentPlayer().name+" win")
         }
     }
 
