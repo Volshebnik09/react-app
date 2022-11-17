@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {Cells, GameOSProps} from "../../Types/GameOS";
 
 
@@ -7,6 +7,7 @@ function GameOS({cellsSize,cellsPerWidth,cellsPerHeight,game,getCurrentPlayer,ch
     const [cells, setCells] = useState<Cells>({});
     const [OSCoords, setOSCoords] = useState<[number,number]>([0,0]);
     const [fieldLock, setFieldLock] = useState(false);
+    const [offset, setOffset] = useState<[number,number]>([0,0])
 
     function getSymbol(x:number,y:number):string{
         return cells[x]?.[y] ?? ''
@@ -23,6 +24,8 @@ function GameOS({cellsSize,cellsPerWidth,cellsPerHeight,game,getCurrentPlayer,ch
     // вешаем перемещение
     useEffect(()=>{
         let isMouseDown = false;
+        let offsetXOld = offset[0];
+        let offsetYOld = offset[1];
         game.current!.oncontextmenu = () => false;
         game.current!.addEventListener('mousedown',(e)=>{
             if (e.button === 2) {
@@ -37,8 +40,15 @@ function GameOS({cellsSize,cellsPerWidth,cellsPerHeight,game,getCurrentPlayer,ch
             OSCoords[0] += e.movementX
             OSCoords[1] += e.movementY
             setOSCoords([OSCoords[0],OSCoords[1]])
+            let offsetX = Math.floor(OSCoords[0]/cellsSize)
+            let offsetY = Math.floor(OSCoords[1]/cellsSize)
+            if ((offsetX !== offsetXOld) || (offsetY !== offsetYOld)) {
+                setOffset([offsetX, offsetY])
+                offsetXOld = offsetX;
+                offsetYOld = offsetY;
+            }
         })
-    },[game,OSCoords])
+    },[])
 
     function move (x:number,y:number){
         if (fieldLock) return
@@ -50,11 +60,10 @@ function GameOS({cellsSize,cellsPerWidth,cellsPerHeight,game,getCurrentPlayer,ch
             alert(getCurrentPlayer().name+" win")
         }
     }
-
-    function renderCells(){
+    const renderCells = useMemo(()=>{
         const cellsHTML = []
-        let offsetX = Math.floor(OSCoords[0]/cellsSize)
-        let offsetY = Math.floor(OSCoords[1]/cellsSize)
+        let offsetX = offset[0]
+        let offsetY = offset[1]
 
         for (let x = -1 - offsetX; x<cellsPerWidth - offsetX;x++){
             for (let y = -1 - offsetY; y<cellsPerHeight - offsetY;y++){
@@ -78,7 +87,7 @@ function GameOS({cellsSize,cellsPerWidth,cellsPerHeight,game,getCurrentPlayer,ch
 
 
         return cellsHTML
-    }
+    },[offset, cells])
 
 
     return (
@@ -87,7 +96,7 @@ function GameOS({cellsSize,cellsPerWidth,cellsPerHeight,game,getCurrentPlayer,ch
                 transform:`translate(${OSCoords[0]}px,${OSCoords[1]}px)`
             }}
         >
-            {renderCells()}
+            {renderCells}
         </div>
     );
 }
