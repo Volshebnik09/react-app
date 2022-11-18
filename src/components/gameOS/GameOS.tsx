@@ -1,31 +1,26 @@
 import React, {RefObject, useEffect, useState} from 'react';
-import { Cells, GameOSProps } from '../../Types/Game';
+import { CellT, GameOSProps } from '../../Types/Game';
 import Cell from '../Cell/Cell';
-import { checkWin, getCellsPerHeight, getCellsPerWidth, getCellsSize, getSymbol, setSymbol } from '../gameModel';
-import {changePlayer,getCurrentPlayer} from "../playersModel"
+import { getCellsPerHeight, getCellsPerWidth, getCellsSize, getSymbol, setOSCoords, cells, move, getOffsetX, getOffsetY} from '../gameModel';
 
-function move (x:number,y:number,fieldLock:boolean,cells:Cells,setFieldLock:React.Dispatch<boolean>, setCells:React.Dispatch<Cells>):void{
-    if (fieldLock) return
-    if (getSymbol(x,y,cells)) return
-    setSymbol(x,y,getCurrentPlayer().symbol,cells,setCells)
-    changePlayer()
-    if (checkWin(x,y,cells)) {
-        setFieldLock(true)
-        alert(getCurrentPlayer().name+" win")
-    }
-}
 
-function generateCells(offsetX:number,offsetY:number){
-    let cells:[number,number][]= []
+
+function generateCells () {
+    let newCells:CellT[]= []
+    let offsetX = getOffsetX()
+    let offsetY = getOffsetY()
     for (let x= -1 - offsetX;x<getCellsPerWidth() - offsetX;x++){
         for (let y = -1 - offsetY;y<getCellsPerHeight() - offsetY;y++){
-            cells.push([x,y])
+            newCells.push({
+                x:x,
+                y:y
+            })
         }
     }
-    return cells
+    return newCells
 }
 
-function movementHandler(game:RefObject<HTMLDivElement>,setOSCoords:Function,setCellsInView:React.Dispatch<[number,number][]>){
+function movementHandler(game:RefObject<HTMLDivElement>,setCellsInView:React.Dispatch<CellT[]>,setOSCoordsView:React.Dispatch<[number,number]>){
     let isMouseDown = false;
     let offsetXOld = 0;
     let offsetYOld = 0;
@@ -41,44 +36,61 @@ function movementHandler(game:RefObject<HTMLDivElement>,setOSCoords:Function,set
     })
     document.addEventListener('mousemove',(e)=>{
         if (!isMouseDown) return
-        OSCoords[0] += e.movementX
-        OSCoords[1] += e.movementY
-        setOSCoords(()=>[OSCoords[0],OSCoords[1]])
-        let offsetX = Math.floor(OSCoords[0]/getCellsSize())
-        let offsetY = Math.floor(OSCoords[1]/getCellsSize())
-        if ((offsetX !== offsetXOld) || (offsetY !== offsetYOld)) {
-            offsetXOld = offsetX;
-            offsetYOld = offsetY;
-            setCellsInView(generateCells(offsetX,offsetY))
+        OSCoords[0] += e.movementX 
+        OSCoords[1] += e.movementY 
+        setOSCoords([OSCoords[0],OSCoords[1]])
+        setOSCoordsView([OSCoords[0],OSCoords[1]])
+        if ((getOffsetX() !== offsetXOld) || (getOffsetY() !== offsetYOld)) {
+            setCellsInView(generateCells())
+            offsetXOld = getOffsetX();
+            offsetYOld = getOffsetY();
         }
     })
 }
-function GameOS({game}:GameOSProps) {
 
-    const [cells, setCells] = useState<Cells>({});
-    const [OSCoords, setOSCoords] = useState<[number,number]>([0,0]);
-    const [fieldLock, setFieldLock] = useState(false);
-    const [cellsInView, setCellsInView] = useState<[number,number][]>(generateCells(0,0))
+function clickHandler(game:HTMLElement){
+    game.addEventListener('click',(e)=>{
+        let target = e.target as HTMLElement
+
+        if (target.className !== "cell") return
+
+        let cellCoords = target.getBoundingClientRect()
+        let gameCoords = game.getBoundingClientRect() 
+
+        // 0.01 - костыль который спасает от получения при 0.3/0.1 числа 2.9999999999999996
+        // Увеличение размера клетки на 0.01 вообще ничего не меняет
+
+        let x = Math.floor((cellCoords.x - gameCoords.x + 0.01) / getCellsSize()) - getOffsetX(); 
+        let y = Math.floor((cellCoords.y - gameCoords.y + 0.01) / getCellsSize()) - getOffsetY(); 
+        move(x,y)
+    })
+}
+
+
+function GameOS({game}:GameOSProps) {
+    const [cellsInView, setCellsInView] = useState<CellT[]>(()=>generateCells())
+    const [OSCoordsView,setOSCoordsView] = useState<[number,number]>([0,0])
+
 
     // вешаем перемещение
     useEffect(()=>{
-        movementHandler(game,setOSCoords,setCellsInView)
+        movementHandler(game,setCellsInView,setOSCoordsView)
+        clickHandler(game.current!)
     },[game])
     
     return (
         <div className="gameOS"
             style={{
-                transform:`translate(${OSCoords[0]}px,${OSCoords[1]}px)`
+                transform:`translate(${OSCoordsView[0]}px,${OSCoordsView[1]}px)`
             }}
         >
-            {cellsInView.map((coords, index)=>{
+            {cellsInView.map((item, index)=>{
                 return <Cell
 
                 key={index}
-                x={coords[0]}
-                y={coords[1]}
-                symbol={getSymbol(coords[0],coords[1],cells)}
-                onClick={()=>move(coords[0],coords[1],fieldLock,cells,setFieldLock,setCells)}
+                x={item.x}
+                y={item.y}
+                symbol={getSymbol(item.x,item.y,cells)}
                 />
             })} 
         </div>

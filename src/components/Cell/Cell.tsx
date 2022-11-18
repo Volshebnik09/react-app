@@ -1,11 +1,10 @@
-import { CellProps} from "../../Types/Game"
+import {CellT} from "../../Types/Game"
 import { getCellsSize} from "../gameModel"
 
-function Cell({x,y,symbol,onClick}:CellProps){
+function Cell({x,y,symbol}:CellT){
 
     return (
       <div
-        onClick={onClick}
         style={{
           width: getCellsSize(),
           height: getCellsSize(),

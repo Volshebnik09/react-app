@@ -19,16 +19,13 @@ export interface Cells {
     };
 }
 
-export interface Cell {
+export interface CellT {
     x:number,
     y:number,
-    symbol:string
+    symbol?:string
 }
 
 export interface GameOSProps {
     game:RefObject<HTMLDivElement>,
 }
 
-export interface CellProps extends Cell{
-    onClick:any
-}

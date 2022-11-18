@@ -1,4 +1,5 @@
-import { Cells } from "../Types/Game";
+import { Cells}  from "../Types/Game";
+import { changePlayer, getCurrentPlayer } from "./playersModel";
 
 let gameWidth:number;
 let gameHeight:number;
@@ -10,6 +11,22 @@ let cellsSize:number;
 let cellsPerWidth:number;
 let cellsPerHeight:number;
 
+export let fieldLock:boolean;
+
+export let OSCoords:[number,number] = [0,0];
+
+export let cells:Cells = {};
+
+export function setCells(x:Cells){
+    cells = x
+}
+export function setOSCoords(x:[number,number]){
+    OSCoords = x
+}
+
+export function setFieldLock(x:boolean){
+    fieldLock = x
+}
 export function setGameSize(width:number,height:number){
     gameWidth = width;
     gameHeight = height;
@@ -53,11 +70,10 @@ export function getSymbol(x:number,y:number,cells:Cells):string{
     return cells[x]?.[y] ?? ''
 }
 
-export function setSymbol(x:number,y:number,symbol:string,cells:Cells,setCells:React.Dispatch<Cells>){
+export function setSymbol(x:number,y:number,symbol:string){
     if (!cells[x]) cells[x] = {}
     if (cells[x][y]) return
     cells[x][y] = symbol
-    setCells({...cells})
 }
 
 function horizontalCheck(x: number, y: number, symbol: string,cells:Cells) {
@@ -110,3 +126,20 @@ export function checkWin(x: number, y: number,cells:Cells) {
     );
 }
 
+export function move(x:number,y:number):void{
+    if (fieldLock) return
+    if (getSymbol(x,y,cells)) return
+    setSymbol(x,y,getCurrentPlayer().symbol)
+    changePlayer()
+    if (checkWin(x,y,cells)) {
+        setFieldLock(true)
+        alert(getCurrentPlayer().name+" win")
+    }
+}
+export function getOffsetX(){
+    return Math.floor(OSCoords[0]/getCellsSize())
+}
+
+export function getOffsetY(){
+    return Math.floor(OSCoords[1]/getCellsSize())
+}

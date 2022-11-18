@@ -1,15 +1,13 @@
 import  {useRef} from 'react';
 import GameOS from "../gameOS/GameOS";
 import {GameProps} from "../../Types/Game";
-import {changePlayer, setPlayers} from "../playersModel"
+import {setPlayers} from "../playersModel"
 import { setCellsPerWidth, setGameSize, setToWin } from '../gameModel';
 
 function Game({width,height,cellsPerWidth,players,toWin}:GameProps) {
     const game = useRef(null);
 
     setPlayers(players);
-    changePlayer();
-
     setGameSize(width,height);
     setToWin(toWin);
     setCellsPerWidth(cellsPerWidth);
