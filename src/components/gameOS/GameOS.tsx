@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {RefObject, useEffect, useState} from 'react';
 import { Cells, GameOSProps } from '../../Types/Game';
 import Cell from '../Cell/Cell';
 import { checkWin, getCellsPerHeight, getCellsPerWidth, getCellsSize, getSymbol, setSymbol } from '../gameModel';
@@ -25,7 +25,34 @@ function generateCells(offsetX:number,offsetY:number){
     return cells
 }
 
-
+function movementHandler(game:RefObject<HTMLDivElement>,setOSCoords:Function,setCellsInView:React.Dispatch<[number,number][]>){
+    let isMouseDown = false;
+    let offsetXOld = 0;
+    let offsetYOld = 0;
+    let OSCoords = [0,0];
+    game.current!.oncontextmenu = () => false;
+    game.current!.addEventListener('mousedown',(e:MouseEvent)=>{
+        if (e.button === 2) {
+            isMouseDown = true
+        }
+    })
+    document.addEventListener('mouseup',()=>{
+        isMouseDown = false
+    })
+    document.addEventListener('mousemove',(e)=>{
+        if (!isMouseDown) return
+        OSCoords[0] += e.movementX
+        OSCoords[1] += e.movementY
+        setOSCoords(()=>[OSCoords[0],OSCoords[1]])
+        let offsetX = Math.floor(OSCoords[0]/getCellsSize())
+        let offsetY = Math.floor(OSCoords[1]/getCellsSize())
+        if ((offsetX !== offsetXOld) || (offsetY !== offsetYOld)) {
+            offsetXOld = offsetX;
+            offsetYOld = offsetY;
+            setCellsInView(generateCells(offsetX,offsetY))
+        }
+    })
+}
 function GameOS({game}:GameOSProps) {
 
     const [cells, setCells] = useState<Cells>({});
@@ -35,32 +62,7 @@ function GameOS({game}:GameOSProps) {
 
     // вешаем перемещение
     useEffect(()=>{
-        let isMouseDown = false;
-        let offsetXOld = 0;
-        let offsetYOld = 0;
-        let OSCoords = [0,0];
-        game.current!.oncontextmenu = () => false;
-        game.current!.addEventListener('mousedown',(e:MouseEvent)=>{
-            if (e.button === 2) {
-                isMouseDown = true
-            }
-        })
-        document.addEventListener('mouseup',()=>{
-            isMouseDown = false
-        })
-        document.addEventListener('mousemove',(e)=>{
-            if (!isMouseDown) return
-            OSCoords[0] += e.movementX
-            OSCoords[1] += e.movementY
-            setOSCoords(()=>[OSCoords[0],OSCoords[1]])
-            let offsetX = Math.floor(OSCoords[0]/getCellsSize())
-            let offsetY = Math.floor(OSCoords[1]/getCellsSize())
-            if ((offsetX !== offsetXOld) || (offsetY !== offsetYOld)) {
-                offsetXOld = offsetX;
-                offsetYOld = offsetY;
-                setCellsInView(generateCells(offsetX,offsetY))
-            }
-        })
+        movementHandler(game,setOSCoords,setCellsInView)
     },[game])
     
     return (
