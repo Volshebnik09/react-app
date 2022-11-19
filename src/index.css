@@ -48,4 +48,5 @@ body {
   justify-content: center;
   align-items: center;
   font-family: "Ubuntu", serif;
+  user-select: none;
 }

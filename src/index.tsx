@@ -14,7 +14,7 @@ root.render(
         toWin={3}
         width={500}
         height={500}
-        cellsPerWidth={50}
+        cellsPerWidth={15}
         players={[
             {
                 name:"First player",

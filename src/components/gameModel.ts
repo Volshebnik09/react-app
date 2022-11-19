@@ -32,7 +32,7 @@ export function setGameSize(width:number,height:number){
     gameHeight = height;
 }
 
-export function etGameSize(){
+export function getGameSize(){
     return {
         width:gameWidth,
         height:gameHeight

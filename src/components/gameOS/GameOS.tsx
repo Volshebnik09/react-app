@@ -1,7 +1,17 @@
 import React, {RefObject, useEffect, useState} from 'react';
 import { CellT, GameOSProps } from '../../Types/Game';
 import Cell from '../Cell/Cell';
-import { getCellsPerHeight, getCellsPerWidth, getCellsSize, getSymbol, setOSCoords, cells, move, getOffsetX, getOffsetY} from '../gameModel';
+import {
+    getCellsPerHeight,
+    getCellsPerWidth,
+    getCellsSize,
+    getSymbol,
+    setOSCoords,
+    cells,
+    move,
+    getOffsetX,
+    getOffsetY,
+} from '../gameModel';
 
 
 
@@ -13,7 +23,8 @@ function generateCells () {
         for (let y = -1 - offsetY;y<getCellsPerHeight() - offsetY;y++){
             newCells.push({
                 x:x,
-                y:y
+                y:y,
+                symbol:getSymbol(x,y,cells)
             })
         }
     }
@@ -48,7 +59,7 @@ function movementHandler(game:RefObject<HTMLDivElement>,setCellsInView:React.Dis
     })
 }
 
-function clickHandler(game:HTMLElement){
+function clickHandler(game:HTMLElement,setCellsInView:React.Dispatch<CellT[]>){
     game.addEventListener('click',(e)=>{
         let target = e.target as HTMLElement
 
@@ -63,21 +74,21 @@ function clickHandler(game:HTMLElement){
         let x = Math.floor((cellCoords.x - gameCoords.x + 0.01) / getCellsSize()) - getOffsetX(); 
         let y = Math.floor((cellCoords.y - gameCoords.y + 0.01) / getCellsSize()) - getOffsetY(); 
         move(x,y)
+        setCellsInView(generateCells())
     })
 }
 
-
 function GameOS({game}:GameOSProps) {
-    const [cellsInView, setCellsInView] = useState<CellT[]>(()=>generateCells())
-    const [OSCoordsView,setOSCoordsView] = useState<[number,number]>([0,0])
-
+    const [OSCoordsView,setOSCoordsView] = useState<[number,number]>([1,1])
+    const [cellsInView, setCellsInView] = useState(generateCells());
 
     // вешаем перемещение
     useEffect(()=>{
         movementHandler(game,setCellsInView,setOSCoordsView)
-        clickHandler(game.current!)
+        clickHandler(game.current!,setCellsInView)
+        setOSCoordsView([0,0])
     },[game])
-    
+
     return (
         <div className="gameOS"
             style={{
@@ -90,7 +101,7 @@ function GameOS({game}:GameOSProps) {
                 key={index}
                 x={item.x}
                 y={item.y}
-                symbol={getSymbol(item.x,item.y,cells)}
+                symbol={item.symbol}
                 />
             })} 
         </div>
